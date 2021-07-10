@@ -1,6 +1,10 @@
 body {
     background-color: #111111;
     color: white;
+    font-family: Georgia;
+}
+
+h1 {
     font-family: Helvetica;
 }
 
