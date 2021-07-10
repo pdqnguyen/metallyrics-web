@@ -17,7 +17,6 @@ import utils
 
 plt.switch_backend('Agg')
 
-
 FEATURES = {
     'word_count': 'Total number of words in discography',
     'words_per_song': 'Average words per song',
@@ -182,6 +181,7 @@ if __name__ == '__main__':
         features = dict([(key, value)] + list(features.items()))
 
     app = dash.Dash(__name__)
+    server = app.server
 
     dropdown_feature = dcc.Dropdown(
         id="dropdown_feature",
