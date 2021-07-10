@@ -1,17 +1,13 @@
-from argparse import ArgumentParser
 import yaml
 import pandas as pd
 
 
-def get_config(required=('input', 'output')):
-    parser = ArgumentParser()
-    parser.add_argument('config', help='config file')
-    args = parser.parse_args()
-    with open(args.config, 'r') as f:
+def get_config(filename, required=('input', 'output')):
+    with open(filename, 'r') as f:
         cfg = yaml.safe_load(f)
     for key in required:
         if key not in cfg.keys():
-            raise KeyError(f"missing field {key} in {args.config}")
+            raise KeyError(f"missing field {key} in {filename}")
     return cfg
 
 

@@ -17,6 +17,8 @@ import nlp
 
 
 plt.switch_backend('Agg')
+
+
 FEATURES = {
     'word_count': 'Total number of words in discography',
     'words_per_song': 'Average words per song',
@@ -32,6 +34,7 @@ FEATURES = {
     'vocd-D': 'vocd-D',
     'logvocd-D': 'Log(vocd-D)',
 }
+CONFIG = 'config.yaml'
 
 
 def uniq_first_words(x, num_words):
@@ -155,7 +158,7 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
 
 
 if __name__ == '__main__':
-    cfg = utils.get_config(required=('input',))
+    cfg = utils.get_config(CONFIG, required=('input',))
     df = utils.load_bands(cfg['input'])
     df = nlp.get_band_stats(df)
     df = get_band_words(df, num_bands=cfg['num_bands'], num_words=cfg['num_words'])
