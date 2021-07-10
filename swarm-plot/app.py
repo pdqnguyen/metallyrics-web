@@ -3,7 +3,7 @@ Produce scatter plots of lyrical complexity measures computed
 in lyrical_complexity_pre.py
 """
 
-import numpy as np
+import yaml
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -12,8 +12,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
-
-import utils
 
 
 plt.switch_backend('Agg')
@@ -36,34 +34,13 @@ FEATURES = {
 CONFIG = 'config.yaml'
 
 
-def uniq_first_words(x, num_words):
-    """Of the first `num_words` in this text, how many are unique?
-    """
-    return len(set(x[:num_words]))
-
-def get_band_stats(data):
-    data['words_uniq'] = data['words'].apply(set)
-    data['word_count'] = data['words'].apply(len)
-    data['word_count_uniq'] = data['words_uniq'].apply(len)
-    data['words_per_song'] = data['word_count'] / data['songs']
-    data['words_per_song_uniq'] = data['word_count_uniq'] / data['songs']
-    data['seconds_per_song'] = data['seconds'] / data['songs']
-    data['word_rate'] = data['word_count'] / data['seconds']
-    data['word_rate_uniq'] = data['word_count_uniq'] / data['seconds']
-    data.loc[data['word_rate'] == np.inf, 'word_rate'] = 0
-    data.loc[data['word_rate_uniq'] == np.inf, 'word_rate_uniq'] = 0
-    return data
-
-
-def get_band_words(data, num_bands=None, num_words=None):
-    """Filter bands by word count and reviews, and count number of unique first words.
-    """
-    data_short = data[data['word_count'] > num_words].copy()
-    top_reviewed_bands = data_short.sort_values('reviews')['name'][-num_bands:]
-    data_short = data_short.loc[top_reviewed_bands.index]
-    data_short['unique_first_words'] = data_short['words'].apply(uniq_first_words, args=(num_words,))
-    data_short = data_short.sort_values('unique_first_words')
-    return data_short
+def get_config(filename, required=('input', 'output')):
+    with open(filename, 'r') as f:
+        cfg = yaml.safe_load(f)
+    for key in required:
+        if key not in cfg.keys():
+            raise KeyError(f"missing field {key} in {filename}")
+    return cfg
 
 
 def get_genre_label(data, col):
@@ -172,10 +149,8 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
 app = dash.Dash(__name__)
 server = app.server
 
-cfg = utils.get_config(CONFIG, required=('input',))
-df = utils.load_bands(cfg['input'])
-df = get_band_stats(df)
-df = get_band_words(df, num_bands=cfg['num_bands'], num_words=cfg['num_words'])
+cfg = get_config(CONFIG, required=('input',))
+df = pd.read_csv(cfg['input'])
 genres = [c for c in df.columns if 'genre_' in c]
 features = {k: v for k, v in FEATURES.items() if cfg['features'].get(k, False)}
 if cfg['features'].get('unique_first_words', False):
