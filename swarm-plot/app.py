@@ -13,7 +13,6 @@ from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
 import utils
-import nlp
 
 
 plt.switch_backend('Agg')
