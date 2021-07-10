@@ -4,20 +4,30 @@ in lyrical_complexity_pre.py
 """
 
 import yaml
+import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
+from ..app import app
 
 
 plt.switch_backend('Agg')
 
+PATH = pathlib.Path(__file__).parent
+DATA_PATH = PATH.joinpath('../data').resolve().joinpath('data.csv')
+
+NUM_WORDS = 10000
+NUM_BANDS = 200
+FIGURE_SIZE = (20, 10)
+MARKER_SIZE = 18
+
 TITLE = "Vocabulary of heavy metal artists"
 FEATURES = {
+    'unique_first_words': f"Number of unique words in first {NUM_WORDS:,.0f} words",
     'word_count': 'Total number of words in discography',
     'words_per_song': 'Average words per song',
     'words_per_song_uniq': 'Average unique words per song',
@@ -147,25 +157,16 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
     return fig
 
 
-app = dash.Dash(__name__, title=TITLE)
-server = app.server
-
-cfg = get_config(CONFIG, required=('input',))
-df = pd.read_csv(cfg['input'])
+df = pd.read_csv(DATA_PATH)
 genres = [c for c in df.columns if 'genre_' in c]
-features = {k: v for k, v in FEATURES.items() if cfg['features'].get(k, False)}
-if cfg['features'].get('unique_first_words', False):
-    key = 'unique_first_words'
-    value = f"Number of unique words in first {cfg['num_words']:,.0f} words"
-    features = dict([(key, value)] + list(features.items()))
 
 dropdown_feature = dcc.Dropdown(
     id="dropdown_feature",
     options=[
         {'label': v, 'value': k}
-        for k, v in features.items()
+        for k, v in FEATURES.items()
     ],
-    value=list(features.keys())[0],
+    value=list(FEATURES.keys())[0],
     clearable=False,
     style={'background-color': '#111111', 'verticalAlign': 'middle'}
 )
@@ -191,12 +192,12 @@ radio_genre = dcc.RadioItems(
     labelStyle={'display': 'inline-block'}
 )
 
-app.layout = html.Div([
+layout = html.Div([
     html.Div(
         [
-            html.H1(f"Lyrical complexity of the top {cfg['num_bands']} heavy metal artists"),
-            html.P([f"This interactive swarm plot shows various lexical properties of the {cfg['num_bands']} "
-                    f"most-reviewed heavy metal artists who have at least {cfg['num_words']:,.0f} words "
+            html.H1(f"Lyrical complexity of the top {NUM_BANDS} heavy metal artists"),
+            html.P([f"This interactive swarm plot shows various lexical properties of the {NUM_BANDS} "
+                    f"most-reviewed heavy metal artists who have at least {NUM_WORDS:,.0f} words "
                     "in their full collection of lyrics. Review counts are based on reviews at ",
                     html.A("metal-archives", href='https://www.metal-archives.com/', target='_blank'),
                     ", and lyrics are sourced from ",
@@ -259,20 +260,11 @@ def display_plot(feature, cols, selection):
     df_sort = df.sort_values(feature)
     swarm, swarm_props = get_swarm_data(
         df_sort[feature],
-        figsize=(cfg['fig_width'], cfg['fig_height']),
-        markersize=cfg['markersize'],
+        figsize=FIGURE_SIZE,
+        markersize=MARKER_SIZE,
     )
     swarm_df = pd.concat((df_sort, swarm), axis=1)
     if cols is None:
         cols = []
     fig = plot_scatter(swarm_df, cols, swarm_props, union=(selection == 'union'))
     return fig
-
-
-if __name__ == '__main__':
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    parser.add_argument("-d", "--debug", default=False, action="store_true",
-                        help="run in debug mode (development only)")
-    args = parser.parse_args()
-    app.run_server(debug=args.debug)
