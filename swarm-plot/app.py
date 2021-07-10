@@ -283,4 +283,5 @@ def display_plot(feature, cols, selection):
     fig = plot_scatter(swarm_df, cols, swarm_props, union=(selection == 'union'))
     return fig
 
-app.run_server(debug=True)
+if __name__ == '__main__':
+    app.run_server(debug=True)
