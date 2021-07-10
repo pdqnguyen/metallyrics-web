@@ -230,7 +230,11 @@ app.layout = html.Div([
                 ],
                 style={'width': '500px', 'display': 'flex'}
             ),
-            dcc.Graph(id="graph"),
+            dcc.Loading(
+                id='perf-plot-loading',
+                type='default',
+                children=dcc.Graph(id="graph"),
+            ),
         ],
         style={
             'width': '800px',
