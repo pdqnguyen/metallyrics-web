@@ -1,0 +1,261 @@
+<!-- START SIGMA IMPORTS -->
+<script src="/javascript/sigma/src/sigma.core.js"></script>
+<script src="/javascript/sigma/src/conrad.js"></script>
+<script src="/javascript/sigma/src/utils/sigma.utils.js"></script>
+<script src="/javascript/sigma/src/utils/sigma.polyfills.js"></script>
+<script src="/javascript/sigma/src/sigma.settings.js"></script>
+<script src="/javascript/sigma/src/classes/sigma.classes.dispatcher.js"></script>
+<script src="/javascript/sigma/src/classes/sigma.classes.configurable.js"></script>
+<script src="/javascript/sigma/src/classes/sigma.classes.graph.js"></script>
+<script src="/javascript/sigma/src/classes/sigma.classes.camera.js"></script>
+<script src="/javascript/sigma/src/classes/sigma.classes.quad.js"></script>
+<script src="/javascript/sigma/src/classes/sigma.classes.edgequad.js"></script>
+<script src="/javascript/sigma/src/captors/sigma.captors.mouse.js"></script>
+<script src="/javascript/sigma/src/captors/sigma.captors.touch.js"></script>
+<script src="/javascript/sigma/src/renderers/sigma.renderers.canvas.js"></script>
+<script src="/javascript/sigma/src/renderers/sigma.renderers.webgl.js"></script>
+<script src="/javascript/sigma/src/renderers/sigma.renderers.svg.js"></script>
+<script src="/javascript/sigma/src/renderers/sigma.renderers.def.js"></script>
+<script src="/javascript/sigma/src/renderers/webgl/sigma.webgl.nodes.def.js"></script>
+<script src="/javascript/sigma/src/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
+<script src="/javascript/sigma/src/renderers/webgl/sigma.webgl.edges.def.js"></script>
+<script src="/javascript/sigma/src/renderers/webgl/sigma.webgl.edges.fast.js"></script>
+<script src="/javascript/sigma/src/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.labels.def.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.hovers.def.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.nodes.def.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edges.def.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edges.curve.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edgehovers.def.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edgehovers.curve.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edgehovers.arrow.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.edgehovers.curvedArrow.js"></script>
+<script src="/javascript/sigma/src/renderers/canvas/sigma.canvas.extremities.def.js"></script>
+<script src="/javascript/sigma/src/renderers/svg/sigma.svg.utils.js"></script>
+<script src="/javascript/sigma/src/renderers/svg/sigma.svg.nodes.def.js"></script>
+<script src="/javascript/sigma/src/renderers/svg/sigma.svg.edges.def.js"></script>
+<script src="/javascript/sigma/src/renderers/svg/sigma.svg.edges.curve.js"></script>
+<script src="/javascript/sigma/src/renderers/svg/sigma.svg.labels.def.js"></script>
+<script src="/javascript/sigma/src/renderers/svg/sigma.svg.hovers.def.js"></script>
+<script src="/javascript/sigma/src/middlewares/sigma.middlewares.rescale.js"></script>
+<script src="/javascript/sigma/src/middlewares/sigma.middlewares.copy.js"></script>
+<script src="/javascript/sigma/src/misc/sigma.misc.animation.js"></script>
+<script src="/javascript/sigma/src/misc/sigma.misc.bindEvents.js"></script>
+<script src="/javascript/sigma/src/misc/sigma.misc.bindDOMEvents.js"></script>
+<script src="/javascript/sigma/src/misc/sigma.misc.drawHovers.js"></script>
+<!-- END SIGMA IMPORTS -->
+<script src="/javascript/sigma/plugins/sigma.parsers.gexf/gexf-parser.js"></script>
+<script src="/javascript/sigma/plugins/sigma.parsers.gexf/sigma.parsers.gexf.js"></script>
+<div id="container">
+  <style>
+    #graph-container {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      position: fixed;
+    }
+    body {
+      background-color: black;
+    }
+  </style>
+  <div id="graph-container">
+    <div id="header-container" style="background-color: #303030; font-family: Verdana; font-size: 16; color: #C0C0C0; height: 50px; padding: 5px">
+      <style>
+        label, select, button {
+          display: inline-block;
+          margin-top: 10px;
+        }
+        label, button {
+          margin-right: 10px;
+        }
+        select {
+          margin-right: 40px;
+        }
+      </style>
+      <p style="margin: 0">
+        Click on a name to highlight its nearest neighbors. Double-click background to reset highlight.
+      </p>
+      <label id="label-edges">Connect nodes based on:</label>
+      <select name="edges" id="select-edges" onchange="updateGraph()">
+        <option value="genre">Genres in common</option>
+        <option value="lyrical">Lyrical similarity</option>
+      </select>
+      <label id="label-colors">Color nodes based on:</label>
+      <select name="colors" id="select-colors" onchange="updateGraph()">
+        <option value="genre">Genre clusters</option>
+        <option value="lyrical">Lyrical clusters</option>
+      </select>
+      <button onclick="toggleLabelVisible()">Show/hide names</button>
+  </div>
+</div>
+<script>
+  // Function for getting node neighbors
+  sigma.classes.graph.addMethod('neighbors', function(nodeId) {
+    var k,
+        neighbors = {},
+        index = this.allNeighborsIndex[nodeId] || {};
+
+    for (k in index)
+      neighbors[k] = this.nodesIndex[k];
+
+    return neighbors;
+  });
+
+  // Function for reordering edges
+  sigma.classes.graph.addMethod('reorderEdges', function(edgeId) {
+    var temp = null;
+    //remove edge from the edgesArray
+    for (let i = 0; i < this.edgesArray.length; i++)
+        if (this.edgesArray[i].id === edgeId) {
+            temp = this.edgesArray.splice(i, 1);
+            break;
+        }
+    //push the edge into the end
+    if (temp) this.edgesArray.push(temp[0]);
+    return this;
+  });
+
+  // Create sigma and graph variables
+  var sig,
+      g = {
+        nodes: [],
+        edges: []
+      };
+
+  // Instantiate sigma with custom settings
+  sig = new sigma({
+    graph: g,
+    container: 'graph-container',
+    renderer: {
+      container: document.getElementById('graph-container'),
+      type: sigma.renderers.canvas
+    },
+    settings: {
+      defaultEdgeType: "curve",
+      defaultLabelSize: 10,
+      defaultLabelColor: "white",
+      labelThreshold: 0,
+      minEdgeSize: 0.2,
+      maxEdgeSize: 0.6,
+      minNodeSize: 4,
+      maxNodeSize: 4,
+      doubleClickEnabled: false,
+      autoRescale: ['nodePosition', 'nodeSize']
+    }
+  });
+
+  function updateGraph() {
+    var selectEdges = document.getElementById('select-edges').value;
+    var selectColors = document.getElementById('select-colors').value;
+    var fname = `${selectEdges}_proximity_${selectColors}_clustering.gexf`;
+    // if (selectEdges == 'genre') {
+    //   sig.settings('minEdgeSize', 0.2);
+    //   sig.settings('maxEdgeSize', 0.2);
+    // } else if (selectEdges == 'lyrical') {
+    //   sig.settings('minEdgeSize', 0.3);
+    //   sig.settings('maxEdgeSize', 0.3);
+    // }
+
+    // Parse GEXF file
+    sigma.parsers.gexf(
+      fname,
+      sig,
+      function(s) {
+        s.graph.nodes().forEach(function(n) {
+          n.originalColor = n.color;
+          n.originalLabel = n.label;
+        });
+        s.graph.edges().forEach(function(e) {
+          e.originalColor = e.color;
+          if (fname.split("_")[0] == 'genre') e.size = 0.2;
+          else e.size = 0.3;
+          e.originalSize = e.size;
+        });
+
+        // When a node is clicked, we check for each node
+        // if it is a neighbor of the clicked one. If not,
+        // we set its color as grey, and else, it takes its
+        // original color.
+        // We do the same for the edges, and we only keep
+        // edges that have both extremities colored.
+        s.bind('clickNode', function(e) {
+          var nodeId = e.data.node.id,
+              toKeep = s.graph.neighbors(nodeId);
+          toKeep[nodeId] = e.data.node;
+
+          // For each node, set its color to originalColor if
+          // it neighbors the clicked node, and dark grey otherwise.
+          // Set non-neighboring labels to empty.
+          s.graph.nodes().forEach(function(n) {
+            if (toKeep[n.id]) {
+              n.color = n.originalColor;
+              n.label = n.originalLabel;
+            }
+            else {
+              n.color = '#303030';
+              n.label = '';
+            }
+          });
+
+          // For each edge, set its color to originalColor if
+          // it leads to the clicked node, and dark grey otherwise
+          s.graph.edges().forEach(function(e) {
+            // if (toKeep[e.source] && toKeep[e.target])
+            if ((e.source == nodeId) || (e.target == nodeId)) {
+              e.color = e.originalColor;
+              e.size = 0.6;
+              s.graph.reorderEdges(e.id);
+            }
+            else {
+              e.color = '#303030';
+              e.size = e.originalSize;
+              // Hacky way of putting these edges at the bottom...
+              // Remove the edges and put them at the end.
+              // var idx = s.graph.edges().indexOf(e);
+              // s.graph.edges().splice(idx, 1);
+              // s.graph.edges().push(e);
+            }
+          });
+
+          // Since the data has been modified, we need to
+          // call the refresh method to make the colors
+          // update effective.
+          s.refresh();
+        });
+
+        // When the stage is clicked, we just color each
+        // node and edge with its original color.
+        s.bind('doubleClickStage', function(e) {
+          s.graph.nodes().forEach(function(n) {
+            n.color = n.originalColor;
+            n.label = n.originalLabel;
+          });
+
+          s.graph.edges().forEach(function(e) {
+            e.color = e.originalColor;
+            e.size = e.originalSize;
+          });
+
+          // Same as in the previous event:
+          s.refresh();
+        });
+        s.refresh();
+      }
+    );
+  }
+
+  function toggleLabelVisible() {
+    if (sig.settings('labelThreshold') == 0) {
+      sig.settings({labelThreshold: 999});
+    }
+    else {
+      sig.settings({labelThreshold: 0});
+    }
+    sig.refresh()
+  }
+
+  updateGraph();
+</script>
