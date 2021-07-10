@@ -3,6 +3,7 @@ Produce scatter plots of lyrical complexity measures computed
 in lyrical_complexity_pre.py
 """
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
