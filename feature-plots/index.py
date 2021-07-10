@@ -7,13 +7,13 @@ from app import server
 from apps import swarm, scatter
 
 app.layout = html.Div([
+    dcc.Location(id='url', refresh=False, pathname='/apps/swarm'),
     html.Div([
         dcc.Link('Swarm plots', href='/apps/swarm'),
         html.Label(' | '),
         dcc.Link('Scatter plots', href='/apps/scatter'),
     ], className='row'),
-    dcc.Location(id='url', refresh=False, pathname=''),
-    html.Div(id='page-content', children=[])
+    html.Div(id='page-content', children=[], style={'width': 800})
 ])
 
 @app.callback(

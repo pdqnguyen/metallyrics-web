@@ -1,6 +1,9 @@
 import pathlib
 
+# App metadata
 TITLE = "Vocabulary of heavy metal artists"
+
+# Feature set
 NUM_WORDS = 10000
 NUM_BANDS = 200
 FEATURES = {
@@ -21,8 +24,23 @@ FEATURES = {
     'vocd-D': 'vocd-D',
     'logvocd-D': 'Log(vocd-D)',
 }
+
+# Seaborn swarm plot parameters
 FIGURE_SIZE = (20, 10)
 MARKER_SIZE = 18
 
+# Plotly scatter parameters
+PLOT_KWARGS = {
+    'autosize': False,
+    'showlegend': False,
+    'hoverlabel': dict(bgcolor='#730000', font_color='#EBEBEB', font_family='Monospace'),
+    'template': 'plotly_dark',
+}
+AXES_KWARGS = {
+    'gridwidth': 2,
+    'gridcolor': '#444444',
+}
+
+# Dataset location
 PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath('../data').resolve().joinpath('data.csv')

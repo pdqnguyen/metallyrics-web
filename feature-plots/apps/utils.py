@@ -1,5 +1,7 @@
+import pandas as pd
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly.graph_objects as go
 
 def get_genre_label(data, col):
     """Get column names that start with 'genre_'.
@@ -94,3 +96,60 @@ def make_radio_div(id):
         style={'width': '500px', 'display': 'flex'}
     )
     return div
+
+
+def filter_data(data, filter_columns, union=True):
+    if union:
+        filt = (data[filter_columns] > 0).any(axis=1)
+    else:
+        filt = (data[filter_columns] > 0).all(axis=1)
+    bright = data[filt]
+    dim = data[~filt]
+    return bright, dim
+
+
+def add_scatter(fig, data, x='x', y='y', swarm=False, markersize=10, opacity=1.0):
+    """Add a `plotly.graph_object.Scatter` trace to the figure.
+    """
+    # Custom genre string, wrapped at 25 characters per line
+    customdata = pd.DataFrame({
+        'name': data['name'],
+        'genre_split': data['genre'].str.wrap(25).apply(lambda x: x.replace('\n', '<br>'))
+    })
+    if data[x].max() - data[x].min() > 10:
+        # Whole number values if values span more than a factor of ten
+        x_template = '%{x:.0f}'
+    else:
+        # Three significant figures otherwise
+        x_template = '%{x:.3g}'
+    if swarm:
+        hovertemplate = '<b>%{customdata[0]}</b><br><br>'\
+                        'Value: ' + x_template + '<br>'\
+                        'Genre: %{customdata[1]}'
+    else:
+        if data[y].max() - data[y].min() > 10:
+            # Whole number values if values span more than a factor of ten
+            y_template = '%{y:.0f}'
+        else:
+            # Three significant figures otherwise
+            y_template = '%{y:.3g}'
+        hovertemplate = '<b>%{customdata[0]}</b><br><br>' \
+                        'X: ' + x_template + '<br>' \
+                        'Y: ' + y_template + '<br>' \
+                        'Genre: %{customdata[1]}'
+    fig.add_trace(
+        go.Scatter(
+            mode='markers',
+            x=data[x],
+            y=data[y],
+            customdata=customdata,
+            opacity=opacity,
+            marker=dict(
+                size=markersize,
+                color='#1f77b4',
+                line=dict(width=2, color='DarkSlateGray')
+            ),
+            hovertemplate=hovertemplate,
+            name='',
+        )
+    )

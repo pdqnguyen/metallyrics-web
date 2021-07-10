@@ -39,43 +39,6 @@ def get_swarm_data(series, figsize, markersize):
     return swarm_data, swarm_props
 
 
-def add_scatter(fig, data, size, opacity=1.0):
-    """Add a plotly scatter plot to visualize the swarm data.
-    """
-    # Custom genre string, wrapped at 25 characters per line
-    customdata = pd.DataFrame({
-        'name': data['name'],
-        'genre_split': data['genre'].str.wrap(25).apply(lambda x: x.replace('\n', '<br>'))
-    })
-    if data['x'].max() - data['x'].min() > 10:
-        # Whole number values if values span more than a factor of ten
-        hovertemplate = '<b>%{customdata[0]}</b><br><br>'\
-                        'Value: %{x:.0f}<br>'\
-                        'Genre: %{customdata[1]}'
-    else:
-        # Three significant figures otherwise
-        hovertemplate = '<b>%{customdata[0]}</b><br><br>'\
-                        'Value: %{x:.3g}<br>'\
-                        'Genre: %{customdata[1]}'
-    fig.add_trace(
-        go.Scatter(
-            mode='markers',
-            x=data['x'],
-            y=data['y'],
-            customdata=customdata,
-            opacity=opacity,
-            marker=dict(
-                size=size,
-                color='#1f77b4',
-                line=dict(width=2, color='DarkSlateGray')
-            ),
-            hovertemplate=hovertemplate,
-            name='',
-        )
-    )
-    return
-
-
 def plot_scatter(data, filter_columns, sns_props, union=True):
     """Initialize `plotly.graph_objects.Figure` object which will contain swarm plots.
     """
@@ -87,27 +50,19 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
     fig = go.Figure()
     if len(filter_columns) > 0:
         # Apply filtering from user selections
-        if union:
-            filt = (data[filter_columns] > 0).any(axis=1)
-        else:
-            filt = (data[filter_columns] > 0).all(axis=1)
-        bright = data[filt]
-        dim = data[~filt]
-        add_scatter(fig, bright, size)
-        add_scatter(fig, dim, size, opacity=0.15)
+        bright, dim = utils.filter_data(data, filter_columns, union=union)
+        utils.add_scatter(fig, data=bright, swarm=True, markersize=size)
+        utils.add_scatter(fig, data=dim, swarm=True, markersize=size, opacity=0.15)
     else:
-        add_scatter(fig, data, size)
+        utils.add_scatter(fig, data=data, swarm=True, markersize=size)
     # Assign figure properties
     fig.update_layout(
-        autosize=False,
         width=axsize[0],
         height=axsize[1],
-        showlegend=False,
-        hoverlabel=dict(bgcolor='#730000', font_color='#EBEBEB', font_family='Monospace'),
-        template='plotly_dark',
+        **PLOT_KWARGS
     )
-    fig.update_xaxes(range=xlim, gridwidth=2, gridcolor='#444444', side='top')
-    fig.update_yaxes(range=ylim, gridwidth=2, gridcolor='#444444', tickvals=[0], ticktext=[''])
+    fig.update_xaxes(range=xlim, side='top', **AXES_KWARGS)
+    fig.update_yaxes(range=ylim, tickvals=[0], ticktext=[''], **AXES_KWARGS)
     return fig
 
 
@@ -136,10 +91,6 @@ layout = html.Div([
                 children=dcc.Graph(id="swarm-graph"),
             ),
         ],
-        style={
-            'width': '800px',
-            'font-family': 'Helvetica',
-        }
     )
 ], style={})
 
