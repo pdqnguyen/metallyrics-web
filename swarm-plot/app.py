@@ -262,5 +262,11 @@ def display_plot(feature, cols, selection):
     fig = plot_scatter(swarm_df, cols, swarm_props, union=(selection == 'union'))
     return fig
 
+
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument("-d", "--debug", default=False, action="store_true",
+                        help="run in debug mode (development only)")
+    args = parser.parse_args()
+    app.run_server(debug=args.debug)
