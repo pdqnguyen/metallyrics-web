@@ -42,6 +42,19 @@ def uniq_first_words(x, num_words):
     """
     return len(set(x[:num_words]))
 
+def get_band_stats(data):
+    data['words_uniq'] = data['words'].apply(set)
+    data['word_count'] = data['words'].apply(len)
+    data['word_count_uniq'] = data['words_uniq'].apply(len)
+    data['words_per_song'] = data['word_count'] / data['songs']
+    data['words_per_song_uniq'] = data['word_count_uniq'] / data['songs']
+    data['seconds_per_song'] = data['seconds'] / data['songs']
+    data['word_rate'] = data['word_count'] / data['seconds']
+    data['word_rate_uniq'] = data['word_count_uniq'] / data['seconds']
+    data.loc[data['word_rate'] == np.inf, 'word_rate'] = 0
+    data.loc[data['word_rate_uniq'] == np.inf, 'word_rate_uniq'] = 0
+    return data
+
 
 def get_band_words(data, num_bands=None, num_words=None):
     """Filter bands by word count and reviews, and count number of unique first words.
@@ -160,7 +173,7 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
 if __name__ == '__main__':
     cfg = utils.get_config(CONFIG, required=('input',))
     df = utils.load_bands(cfg['input'])
-    df = nlp.get_band_stats(df)
+    df = get_band_stats(df)
     df = get_band_words(df, num_bands=cfg['num_bands'], num_words=cfg['num_words'])
     genres = [c for c in df.columns if 'genre_' in c]
     features = {k: v for k, v in FEATURES.items() if cfg['features'].get(k, False)}
