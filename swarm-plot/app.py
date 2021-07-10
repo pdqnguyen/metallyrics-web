@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 
 plt.switch_backend('Agg')
 
+TITLE = "Vocabulary of heavy metal artists"
 FEATURES = {
     'word_count': 'Total number of words in discography',
     'words_per_song': 'Average words per song',
@@ -146,7 +147,7 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
     return fig
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, title=TITLE)
 server = app.server
 
 cfg = get_config(CONFIG, required=('input',))
@@ -193,9 +194,14 @@ radio_genre = dcc.RadioItems(
 app.layout = html.Div([
     html.Div(
         [
-            html.H1(f"Lyrical Complexity of the Top {cfg['num_bands']} Artists"),
-            html.P("This interactive swarm plot shows the most-reviewed artists who have at least "
-                   f"{cfg['num_words']:,.0f} words in their collection of song lyrics."),
+            html.H1(f"Lyrical complexity of the top {cfg['num_bands']} heavy metal artists"),
+            html.P([f"This interactive swarm plot shows various lexical properties of the {cfg['num_bands']} "
+                    f"most-reviewed heavy metal artists who have at least {cfg['num_words']:,.0f} words "
+                    "in their full collection of lyrics. Review counts are based on reviews at ",
+                    html.A("metal-archives", href='https://www.metal-archives.com/', target='_blank'),
+                    ", and lyrics are sourced from ",
+                    html.A("darklyrics", href='http://www.darklyrics.com/', target='_blank'),
+                    "."]),
             html.Div(
                 [
                     html.P(

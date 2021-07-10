@@ -3,6 +3,10 @@ body {
     color: white;
 }
 
+a {
+    color: red;
+}
+
 .dropdown .VirtualizedSelectOption {
     background-color: #111111;
     color: white;
