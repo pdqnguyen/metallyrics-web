@@ -78,7 +78,7 @@ layout = html.Div([
                 label="Plot feature",
                 id="swarm-dropdown-feature",
                 features=FEATURES,
-                value=list(FEATURES.keys())[0]
+                value='unique_first_words',
             ),
             utils.make_genre_dropdown_div(
                 id="swarm-dropdown-genre",
