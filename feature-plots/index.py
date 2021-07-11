@@ -10,11 +10,11 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False, pathname='/apps/swarm'),
     html.Div([
         dcc.Link('Swarm plots', href='/apps/swarm'),
-        html.Label(' | '),
+        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
         dcc.Link('Scatter plots', href='/apps/scatter'),
-    ], className='row'),
-    html.Div(id='page-content', children=[], style={'width': 800})
-])
+    ]),
+    html.Div(id='page-content', children=[])
+], style={'width': 1600, 'margin': 10})
 
 @app.callback(
     Output('page-content', 'children'),

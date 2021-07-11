@@ -12,6 +12,10 @@ a {
     color: red;
 }
 
+.card {
+    background-color: #222222;
+}
+
 .dropdown .VirtualizedSelectOption {
     background-color: #111111;
     color: white;

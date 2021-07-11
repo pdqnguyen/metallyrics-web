@@ -26,8 +26,8 @@ FEATURES = {
 }
 
 # Seaborn swarm plot parameters
-FIGURE_SIZE = (20, 10)
-MARKER_SIZE = 18
+FIGURE_SIZE = (20, 8)
+MARKER_SIZE = 13
 
 # Plotly scatter parameters
 PLOT_KWARGS = {
@@ -44,3 +44,4 @@ AXES_KWARGS = {
 # Dataset location
 PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath('../data').resolve().joinpath('data.csv')
+TFIDF_PATH = PATH.joinpath('../data').resolve().joinpath('tfidf-bands.csv')

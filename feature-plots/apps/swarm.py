@@ -5,13 +5,14 @@ Produce swarm plots
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 from app import app
 from . import utils
-from .constants import *
+from .config import *
 
 
 plt.switch_backend('Agg')
@@ -67,32 +68,47 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
 
 
 df = pd.read_csv(DATA_PATH)
+tfidf = pd.read_csv(TFIDF_PATH, index_col=0)
 genres = [c for c in df.columns if 'genre_' in c]
 
+controls_card = utils.make_controls_card([
+    utils.get_caption(NUM_BANDS, NUM_WORDS),
+    utils.make_features_dropdown_div(
+        label="Plot feature:",
+        id="swarm-dropdown-feature",
+        features=FEATURES,
+        value='unique_first_words',
+    ),
+    utils.make_genre_dropdown_div(
+        id="swarm-dropdown-genre",
+        genres={g: utils.get_genre_label(df, g) for g in genres},
+    ),
+    utils.make_radio_div("swarm-radio-genre"),
+])
+
+wordcloud_card = utils.make_wordcloud_card("swarm")
+
 layout = html.Div([
-    html.Div(
-        [
-            utils.get_header(NUM_BANDS),
-            utils.get_caption(NUM_BANDS, NUM_WORDS),
-            utils.make_features_dropdown_div(
-                label="Plot feature",
-                id="swarm-dropdown-feature",
-                features=FEATURES,
-                value='unique_first_words',
-            ),
-            utils.make_genre_dropdown_div(
-                id="swarm-dropdown-genre",
-                genres={g: utils.get_genre_label(df, g) for g in genres},
-            ),
-            utils.make_radio_div("swarm-radio-genre"),
+    utils.get_header(NUM_BANDS),
+    dbc.Card([
+        dbc.CardBody(
             dcc.Loading(
                 id="swarm-plot-loading",
                 type='default',
                 children=dcc.Graph(id="swarm-graph"),
             ),
-        ],
-    )
-], style={})
+            style={'height': 600, 'margin': '0 auto'}
+        ),
+    ]),
+    dbc.Card([
+        dbc.CardBody(
+            dbc.Row([
+                dbc.Col([controls_card], md=7),
+                dbc.Col([wordcloud_card], md=5),
+            ], style={'height': '100%'}),
+        )
+    ], style={'height': 440, 'margin-bottom': 5}),
+])
 
 
 @app.callback(
@@ -112,3 +128,10 @@ def display_plot(feature, cols, selection):
         cols = []
     fig = plot_scatter(swarm_df, cols, swarm_props, union=(selection == 'union'))
     return fig
+
+@app.callback(
+    [Output("swarm-word-cloud-image", "src"),
+     Output("swarm-word-cloud-header", "children")],
+    [Input("swarm-graph", "clickData")])
+def make_image(click):
+    return utils.make_image(tfidf, click)

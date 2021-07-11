@@ -1,7 +1,12 @@
+from io import BytesIO
+import base64
 import pandas as pd
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
+from wordcloud import WordCloud
+
 
 def get_genre_label(data, col):
     """Get column names that start with 'genre_'.
@@ -13,7 +18,7 @@ def get_genre_label(data, col):
 
 
 def get_header(num_bands):
-    return html.H1(f"Lyrical complexity of the top {num_bands} heavy metal artists")
+    return html.H1(f"Lyrical vocabulary of heavy metal artists")
 
 
 def get_caption(num_bands, num_words):
@@ -24,7 +29,8 @@ def get_caption(num_bands, num_words):
         html.A("metal-archives", href='https://www.metal-archives.com/', target='_blank'),
         ", and lyrics are sourced from ",
         html.A("darklyrics", href='http://www.darklyrics.com/', target='_blank'),
-        "."
+        ". Click on any band in the graph to generate a word cloud of that band's ",
+        "lyrics on the right."
     ])
 
 
@@ -37,7 +43,7 @@ def make_dropdown_div(label, dropdown):
             ),
             html.Div([dropdown], className='dropdown', style={'width': '60%'})
         ],
-        style={'display': 'flex'}
+        style={'margin-bottom': '1em', 'width': 700, 'display': 'flex'}
     )
     return div
 
@@ -75,25 +81,24 @@ def make_radio_div(id):
     radio = dcc.RadioItems(
         id=id,
         options=[
-            {'label': 'Match ANY selected genre', 'value': 'union'},
-            {'label': 'Match ALL selected genres', 'value': 'inter'},
+            {'label': ' Match ANY selected genre', 'value': 'union'},
+            {'label': ' Match ALL selected genres', 'value': 'inter'},
         ],
         value='union',
-        labelStyle={'display': 'inline-block'}
+        labelStyle={'display': 'inline-block', 'margin-right': '2em'}
     )
     div = html.Div(
         [
             html.P(
                 "Filter mode:",
-                style={'margin-right': '2em', 'width': '20%'}
+                style={'margin-right': '2em', 'width': '20%', 'display': 'inline-block'}
             ),
             html.Div(
                 [radio],
                 className='radio',
-                style={'width': '80%'}
+                style={'display': 'inline-block'}
             )
         ],
-        style={'width': '500px', 'display': 'flex'}
     )
     return div
 
@@ -153,3 +158,52 @@ def add_scatter(fig, data, x='x', y='y', swarm=False, markersize=10, opacity=1.0
             name='',
         )
     )
+    return
+
+
+def make_controls_card(contents):
+    card = dbc.Card(
+        [dbc.CardBody(contents)],
+        style={'height': '100%', 'background-color': '#333333'}
+    )
+    return card
+
+
+def make_wordcloud_card(plot_type):
+    card = dbc.Card([
+        dbc.CardHeader("Word cloud:", id=f"{plot_type}-word-cloud-header"),
+        dbc.CardBody([
+            dcc.Loading(
+                id=f"{plot_type}-word-cloud-loading",
+                type='default',
+                children=html.Img(
+                    id=f"{plot_type}-word-cloud-image",
+                    style={
+                        'display': 'block',
+                        'margin-left': 'auto',
+                        'margin-right': 'auto',
+                    }
+                ),
+            ),
+        ]),
+    ], style={'width': '100%', 'height': '100%', 'background-color': '#333333'})
+    return card
+
+
+def make_wordcloud(data, name):
+    words = data.loc[name].to_dict()
+    wc = WordCloud(background_color='black', width=480, height=300)
+    wc.fit_words(words)
+    return wc.to_image()
+
+
+def make_image(data, click):
+    if click is not None:
+        name = click['points'][0]['customdata'][0]
+        img = BytesIO()
+        make_wordcloud(data, name).save(img, format='PNG')
+        out = 'data:image/png;base64,{}'.format(
+            base64.b64encode(img.getvalue()).decode())
+        return out, "Word cloud: " + name
+    else:
+        return None, "Word cloud:"
