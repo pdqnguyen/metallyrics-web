@@ -165,6 +165,7 @@
       sig,
       function(s) {
         s.graph.nodes().forEach(function(n) {
+          if (n.attributes.lyrics == -1) n.color = '#B0B0B0';
           n.originalColor = n.color;
           n.originalLabel = n.label;
         });
