@@ -4,10 +4,6 @@ import numpy as np
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse.lil import lil_matrix
 
-import nltk
-nltk.download('words')
-nltk.download('wordnet')
-
 from nltk.corpus import words as nltk_words
 from nltk.corpus import wordnet
 from nltk.tokenize import RegexpTokenizer
