@@ -28,8 +28,9 @@ KERAS_MODEL = False
 MODELS_PATH = os.path.join(os.path.dirname(__file__), 'models')
 
 PIPELINES = {
-    'keras': 'Neural Network',
     'logreg': 'Logistic Regression',
+    'bernoulli': 'Bernoulli NB',
+    'keras': 'Neural Network',
 }
 
 app = dash.Dash(
