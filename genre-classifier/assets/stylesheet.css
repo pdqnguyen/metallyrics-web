@@ -44,3 +44,49 @@ a {
 .dropdown .Select--multi .Select-value-label {
   color: white;
 }
+
+
+.custom-control-label::after,
+.custom-control-label::before {
+  display: none;
+}
+
+.custom-control {
+  padding-left: 0;
+}
+
+.custom-control-inline {
+  margin-right: 0;
+}
+
+.model-group-labels {
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 0px;
+  padding: 6px 7px;
+  background-image: -webkit-linear-gradient(top, #fefefe, #f3f3f3);
+  background-image: -moz-linear-gradient(top, #fefefe, #f3f3f3);
+  cursor: pointer;
+}
+
+.model-group-labels.model-group-labels-checked {
+  background-image: -webkit-linear-gradient(top, #bbb, #b3b3b3);
+  background-image: -moz-linear-gradient(top, #bbb, #b3b3b3);
+  box-shadow: inset 0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.custom-radio:first-child .model-group-labels {
+  border-radius: 3px 0 0 3px;
+}
+
+.custom-radio:last-child .model-group-labels {
+  border-radius: 0 3px 3px 0;
+}
+
+.custom-radio:not(:last-child) .model-group-labels {
+  border-right: none;
+}
+
+.model-group-labels:hover {
+  box-shadow: inset 0px 1px 2px rgba(0, 0, 0, 0.2);
+}
