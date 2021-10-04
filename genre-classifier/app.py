@@ -9,9 +9,9 @@ import pickle
 import h5py
 import dash
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
-from dash_table import DataTable, Format
+from dash import dcc
+from dash import html
+from dash.dash_table import DataTable, Format
 from dash.dependencies import Input, Output, State
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.models import load_model
@@ -79,7 +79,7 @@ app.layout = html.Div(
                 dcc.Textarea(
                     id='textarea',
                     value='Enter lyrics here',
-                    style={'width': '100%', 'height': 800},
+                    style={'background-color': '#fff', 'width': '100%', 'height': 800},
                 ),
             ])
         ),
@@ -104,7 +104,7 @@ app.layout = html.Div(
                     ],
                     style={'display': 'inline-block'},
                 ),
-                html.Div(id='table-div', style={'width': 500}),
+                html.Div(id='table-div', style={'margin-top': 20, 'width': 500}),
                 # dt.DataTable(id='table', columns=[{'name': i, 'id': i} for i in COLUMNS]),
                 # html.Div(id='textarea-output', style={'margin-top': 20, 'whiteSpace': 'pre-line'}),
             ])
@@ -148,17 +148,16 @@ def update_output(n_clicks, text, model_name):
         id='table',
         data=rows,
         columns=columns,
+        cell_selectable=False,
         style_header={'backgroundColor': 'rgb(30, 30, 30)', 'color': 'white'},
         style_cell={'backgroundColor': 'rgb(50, 50, 50)', 'color': '#ccc'},
         style_data_conditional=[
             {
-                'if': {
-                    'filter_query': '{p_r} >= 0.5',
-                },
+                'if': {'filter_query': '{p_r} >= 0.5'},
                 'backgroundColor': 'rgb(100, 100, 100)',
                 'color': 'white'
             },
-        ]
+        ],
     )
 
 
