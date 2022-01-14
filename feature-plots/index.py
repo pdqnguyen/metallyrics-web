@@ -10,11 +10,11 @@ app.layout = html.Div([
     html.Div([
         "Links:",
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
-        dcc.Link('Github', href='https://www.github.com/pdqnguyen/metallyrics-web'),
+        html.A('Github', href='https://www.github.com/pdqnguyen/metallyrics-web'),
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
-        dcc.Link('Network graph', href='https://metal-lyrics-network-graph.herokuapp.com/'),
+        html.A('Network graph', href='https://metal-lyrics-network-graph.herokuapp.com/'),
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
-        dcc.Link('Genre predictor', href='https://metal-lyrics-genre-classifier.herokuapp.com/'),
+        html.A('Genre predictor', href='https://metal-lyrics-genre-classifier.herokuapp.com/'),
     ], style={'margin-bottom': 10}),
     html.Div([
         dcc.Link('Swarm plots', href='/apps/swarm'),

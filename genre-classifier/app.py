@@ -63,11 +63,11 @@ app.layout = html.Div([
     html.Div([
         "Links:",
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
-        dcc.Link('Github', href='https://www.github.com/pdqnguyen/metallyrics-web'),
+        html.A('Github', href='https://www.github.com/pdqnguyen/metallyrics-web'),
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
-        dcc.Link('Dataset dashboard', href='https://metal-lyrics-feature-plots.herokuapp.com/'),
+        html.A('Dataset dashboard', href='https://metal-lyrics-feature-plots.herokuapp.com/'),
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
-        dcc.Link('Network graph', href='https://metal-lyrics-network-graph.herokuapp.com/'),
+        html.A('Network graph', href='https://metal-lyrics-network-graph.herokuapp.com/'),
     ]),
     dbc.Row([
         dbc.Col(
