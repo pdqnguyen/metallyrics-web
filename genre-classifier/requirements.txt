@@ -10,4 +10,4 @@ scikit-learn==1.0.1
 scikit-multilearn==0.2.0
 scipy==1.7.3
 seaborn
-tensorflow==2.7.0
+tensorflow-cpu==2.7.0
