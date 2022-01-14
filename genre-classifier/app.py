@@ -26,7 +26,7 @@ PIPELINES = {
     'keras': 'Neural Network',
     'lgbm': 'Gradient Boosted Decision Trees',
     'logreg': 'Logistic Regression',
-    # 'bernoulli': 'Bernoulli NB',
+    'naivebayes' : 'Naive Bayes',
 }
 
 
