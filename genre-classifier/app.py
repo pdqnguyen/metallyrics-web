@@ -3,15 +3,14 @@ Predict genre labels
 """
 
 
-import glob
 import os
 import pickle
 import h5py
+import numpy as np
 import dash
 import dash_bootstrap_components as dbc
-from dash import dcc
-from dash import html
-from dash.dash_table import DataTable, Format
+from dash import dcc, html
+from dash.dash_table import DataTable, FormatTemplate
 from dash.dependencies import Input, Output, State
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.models import load_model
@@ -21,25 +20,14 @@ from ml_utils import create_keras_model
 # app metadata
 TITLE = "Genre predictor"
 
-# defaults
-KERAS_MODEL = False
-
 # pipeline location
 MODELS_PATH = os.path.join(os.path.dirname(__file__), 'models')
-
 PIPELINES = {
-    'logreg': 'Logistic Regression',
-    'bernoulli': 'Bernoulli NB',
     'keras': 'Neural Network',
+    'lgbm': 'Gradient Boosted Decision Trees',
+    'logreg': 'Logistic Regression',
+    # 'bernoulli': 'Bernoulli NB',
 }
-
-app = dash.Dash(
-    __name__,
-    title=TITLE,
-    suppress_callback_exceptions=True,
-    external_stylesheets=[dbc.themes.BOOTSTRAP, 'assets/stylesheet.css']
-)
-server = app.server
 
 
 def get_pipeline(name):
@@ -48,31 +36,39 @@ def get_pipeline(name):
     if name == 'keras':
         # extra code for rebuilding a KerasClassifier wrapper object
         # this is necessary because KerasClassifiers are not well suited for I/O
-        # but scikit-multilearn handles KerasClassifiers better than native Keras models
-        # look for and load all Keras models found in the same directory as the pipeline
-        classifiers = []
-        print(os.path.join(MODELS_PATH, 'keras*.h5'))
-        clf_fnames = glob.glob(str(os.path.join(MODELS_PATH, 'keras*.h5')))
-        for i, clf_fname in enumerate(clf_fnames):
-            clf = KerasClassifier(create_keras_model)
-            clf.model = load_model(clf_fname)
-            # get the 'classes_' attribute, necessary for the wrapper to make predictions
-            with h5py.File(clf_fname, 'r') as clf_h5:
-                clf.classes_ = clf_h5.attrs['classes']
-            classifiers.append(clf)
-        # make sure number of Keras models found matches the number needed in the pipeline
-        if len(classifiers) == len(out.classifier.classifiers_):
-            out.classifier.classifiers_ = classifiers
-        else:
-            raise OSError(f"{len(classifiers)} Keras models found,"
-                          f" {len(out.classifier.classifiers_)} needed")
-    # import numpy as np
-    # pipeline.set_threshold(0.5 * np.ones(len(pipeline.threshold)))
-    print("Thresholds:", out.threshold)
+        clf_filename = os.path.join(MODELS_PATH, name + '_model.h5')
+        clf = KerasClassifier(create_keras_model)
+        clf.model = load_model(clf_filename)
+        with h5py.File(clf_filename, 'r') as clf_h5:
+            clf.classes_ = clf_h5.attrs['classes']
+        out.classifier = clf
     return out
 
 
-app.layout = html.Div(
+threshold_dict = {key: None for key in PIPELINES.keys()}
+with open(os.path.join(MODELS_PATH, "thresholds.csv"), 'r') as f:
+    for line in f.readlines():
+        row = line.split(",")
+        if len(row) > 1:
+            threshold_dict[row[0]] = np.array([float(x) for x in row[1:]])
+
+app = dash.Dash(
+    __name__,
+    title=TITLE,
+    suppress_callback_exceptions=True,
+    external_stylesheets=[dbc.themes.BOOTSTRAP, 'assets/stylesheet.css']
+)
+server = app.server
+app.layout = html.Div([
+    html.Div([
+        "Links:",
+        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
+        dcc.Link('Github', href='https://www.github.com/pdqnguyen/metallyrics-web'),
+        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
+        dcc.Link('Dataset dashboard', href='https://metal-lyrics-feature-plots.herokuapp.com/'),
+        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
+        dcc.Link('Network graph', href='https://metal-lyrics-network-graph.herokuapp.com/'),
+    ]),
     dbc.Row([
         dbc.Col(
             html.Div([
@@ -85,33 +81,26 @@ app.layout = html.Div(
         ),
         dbc.Col(
             html.Div([
-                dbc.Button("Predict", id='textarea-button', style={'margin-right': 30, 'display': 'inline-block'}),
-                html.Div(
-                    [
-                        html.Div("Model selection:", style={'margin-right': 10, 'display': 'inline-block'}),
-                        html.Div(
-                            dbc.RadioItems(
-                                id="model-radio",
-                                labelClassName="model-group-labels",
-                                labelCheckedClassName="model-group-labels-checked",
-                                className="model-group-items",
-                                options=[{"label": label, "value": name} for name, label in PIPELINES.items()],
-                                value=list(PIPELINES.keys())[0],
-                                inline=True,
-                            ),
-                            style={'display': 'inline-block'},
-                        )
-                    ],
-                    style={'display': 'inline-block'},
+                html.Div("Choose a model:"),
+                dbc.RadioItems(
+                    id="model-radio",
+                    labelClassName="model-group-labels",
+                    labelCheckedClassName="model-group-labels-checked",
+                    className="model-group-items",
+                    options=[{"label": label, "value": name} for name, label in PIPELINES.items()],
+                    value=list(PIPELINES.keys())[0],
+                    style={'margin-top': 10},
                 ),
-                html.Div(id='table-div', style={'margin-top': 20, 'width': 500}),
-                # dt.DataTable(id='table', columns=[{'name': i, 'id': i} for i in COLUMNS]),
-                # html.Div(id='textarea-output', style={'margin-top': 20, 'whiteSpace': 'pre-line'}),
-            ])
+                dbc.Button("Predict", id='textarea-button', style={'margin-top': 30}),
+                html.Div(
+                    dcc.Loading(html.Div(id='table-div', style={'width': 300, 'height': 200})),
+                    id='table-loading-div',
+                    style={'margin-top': 10, 'width': 300, 'height': 200}
+                ),
+            ], style={'width': 500})
         )
-    ]),
-    style={'margin': 20}
-)
+    ], style={'margin-top': 10}),
+], style={'margin': 10})
 
 
 @app.callback(
@@ -123,6 +112,10 @@ app.layout = html.Div(
 )
 def update_output(n_clicks, text, model_name):
     pipeline = get_pipeline(model_name)
+    threshold = threshold_dict[model_name]
+    if threshold is not None:
+        pipeline.threshold = threshold
+    print(f"{model_name} thresholds:", pipeline.threshold)
     if n_clicks is None:
         return
     results = pipeline.classify_text(text)
@@ -133,16 +126,20 @@ def update_output(n_clicks, text, model_name):
         output += ", ".join([res[0].upper() for res in results if res[2] > 0]) + "\n"
     output += "\nIndividual label probabilities:\n"
     rows = []
-    for res in results:
-        idx = list(pipeline.labels).index(res[0])
-        prob = min(1.0, res[1] * 0.5 / pipeline.threshold[idx])
-        output += "{:<10s}{:>10.3g}%{:>10.3g}%\n".format(res[0], 100 * res[1], 100 * prob)
-        rows.append({'genre': res[0], 'p': res[1], 'p_r': prob})
-    percentage = {'specifier': '.3g'}
+    for label, prob, pred in results:
+        genre = label[0].upper() + label[1:] + " Metal"
+        if pipeline.threshold is not None:
+            idx = list(pipeline.labels).index(label)
+            prob_rescaled = min(1.0, prob * 0.5 / pipeline.threshold[idx])
+            output += "{:<10s}{:>10.3g}%{:>10.3g}%\n".format(label, 100 * prob, 100 * prob_rescaled)
+            rows.append({'genre': genre, 'p': prob_rescaled})
+        else:
+            output += "{:<10s}{:>10.3g}%\n".format(label, 100 * prob)
+            rows.append({'genre': genre, 'p': prob})
+    percentage = FormatTemplate.percentage(2)
     columns = [
         dict(id='genre', name='Genre'),
         dict(id='p', name='Probability', type='numeric', format=percentage),
-        dict(id='p_r', name='Reweighted probability', type='numeric', format=percentage),
     ]
     return DataTable(
         id='table',
@@ -153,7 +150,7 @@ def update_output(n_clicks, text, model_name):
         style_cell={'backgroundColor': 'rgb(50, 50, 50)', 'color': '#ccc'},
         style_data_conditional=[
             {
-                'if': {'filter_query': '{p_r} >= 0.5'},
+                'if': {'filter_query': '{p} >= 0.5'},
                 'backgroundColor': 'rgb(100, 100, 100)',
                 'color': 'white'
             },

@@ -1,0 +1,60 @@
+body {
+    background-color: #111111;
+    color: white;
+    font-family: Georgia;
+}
+
+h1 {
+    font-family: Helvetica;
+}
+
+a {
+    color: red;
+}
+
+#graph-container {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: fixed;
+}
+
+#header-container {
+    background-color: #303030;
+    height: 80px;
+    padding: 5px;
+}
+
+.card {
+    background-color: #222222;
+}
+
+.dropdown .VirtualizedSelectOption {
+    background-color: #111111;
+    color: white;
+}
+
+.dropdown .VirtualizedSelectFocusedOption {
+    background-color: #444444;
+    color: white;
+}
+
+.dropdown .VirtualizedSelectSelectedOption {
+    background-color: #444444;
+    color: white;
+}
+
+.dropdown .Select--single .Select-value-label {
+  color: white !important;
+}
+
+.dropdown .Select--multi .Select-value {
+  background-color: #2e5882;
+  border-color: #9ab8d6;
+  color: white;
+}
+
+.dropdown .Select--multi .Select-value-label {
+  color: white;
+}

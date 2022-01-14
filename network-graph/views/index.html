@@ -49,20 +49,9 @@
 <script src="/javascript/sigma/plugins/sigma.parsers.gexf/gexf-parser.js"></script>
 <script src="/javascript/sigma/plugins/sigma.parsers.gexf/sigma.parsers.gexf.js"></script>
 <div id="container">
-  <style>
-    #graph-container {
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      position: fixed;
-    }
-    body {
-      background-color: black;
-    }
-  </style>
+  <link rel="stylesheet" href="/stylesheet.css">
   <div id="graph-container">
-    <div id="header-container" style="background-color: #303030; font-family: Verdana; font-size: 16; color: #C0C0C0; height: 50px; padding: 5px">
+    <div id="header-container">
       <style>
         label, select, button {
           display: inline-block;
@@ -75,6 +64,13 @@
           margin-right: 40px;
         }
       </style>
+      <p style="margin: 0">
+        Links: <a href="https://www.github.com/pdqnguyen/metallyrics-web">Github</a>
+        &nbsp;|&nbsp;
+        <a href="https://metal-lyrics-feature-plots.herokuapp.com">Dataset dashboard</a>
+        &nbsp;|&nbsp;
+        <a href="https://metal-lyrics-genre-classifier.herokuapp.com/">Genre predictor</a>
+      </p>
       <p style="margin: 0">
         Click on a name to highlight its nearest neighbors. Double-click background to reset highlight.
       </p>
@@ -89,6 +85,7 @@
         <option value="lyrical">Lyrical clusters</option>
       </select>
       <button onclick="toggleLabelVisible()">Show/hide names</button>
+    </div>
   </div>
 </div>
 <script>
