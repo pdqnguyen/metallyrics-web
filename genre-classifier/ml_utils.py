@@ -5,7 +5,7 @@ from scipy.sparse.csr import csr_matrix
 from scipy.sparse.lil import lil_matrix
 
 from nltk.corpus import words as nltk_words
-from nltk.corpus import wordnet
+# from nltk.corpus import wordnet
 from nltk.tokenize import RegexpTokenizer
 
 
@@ -21,16 +21,16 @@ def tokenize(s, english_only=False, stopwords=None):
              .replace("'s", '')
              .replace("in'", 'ing')
              for w in regexp_tokenizer.tokenize(s.strip())]
-    if english_only:
-        new_words = []
-        for w in words:
-            lemma = wordnet.morphy(w)
-            if lemma is not None:
-                if lemma in ENGLISH_WORDS:
-                    new_words.append(w)
-            elif w in ENGLISH_WORDS:
-                new_words.append(w)
-        words = new_words
+    # if english_only:
+    #     new_words = []
+    #     for w in words:
+    #         lemma = wordnet.morphy(w)
+    #         if lemma is not None:
+    #             if lemma in ENGLISH_WORDS:
+    #                 new_words.append(w)
+    #         elif w in ENGLISH_WORDS:
+    #             new_words.append(w)
+    #     words = new_words
     if stopwords is not None:
         words = [w for w in words if w not in stopwords]
     return words
@@ -156,16 +156,16 @@ class NLPipeline:
         return results
 
 
-def plot_feature_importances(clf, vocab):
-    if hasattr(clf, 'feature_importances_'):
-        fi = clf.feature_importances_
-    elif hasattr(clf, 'coef_'):
-        fi = clf.coef_[0]
-    else:
-        raise AttributeError(f"Object {clf.__name__} has no feature importance attribute")
-    fi_top = fi.argsort()[-10:]
-    x_vals = range(len(fi_top))
-    fig = plt.figure(figsize=(8, 5))
-    plt.bar(x_vals, fi[fi_top])
-    plt.xticks(x_vals, vocab[fi_top], rotation=45)
-    return fig
+# def plot_feature_importances(clf, vocab):
+#     if hasattr(clf, 'feature_importances_'):
+#         fi = clf.feature_importances_
+#     elif hasattr(clf, 'coef_'):
+#         fi = clf.coef_[0]
+#     else:
+#         raise AttributeError(f"Object {clf.__name__} has no feature importance attribute")
+#     fi_top = fi.argsort()[-10:]
+#     x_vals = range(len(fi_top))
+#     fig = plt.figure(figsize=(8, 5))
+#     plt.bar(x_vals, fi[fi_top])
+#     plt.xticks(x_vals, vocab[fi_top], rotation=45)
+#     return fig

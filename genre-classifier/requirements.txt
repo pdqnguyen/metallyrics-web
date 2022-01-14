@@ -3,11 +3,9 @@ dash-bootstrap-components==1.0.2
 gunicorn
 h5py
 lightgbm==3.3.2
-matplotlib
 nltk
 numpy==1.22.0
 scikit-learn==1.0.1
 scikit-multilearn==0.2.0
 scipy==1.7.3
-seaborn
 tensorflow-cpu==2.7.0
