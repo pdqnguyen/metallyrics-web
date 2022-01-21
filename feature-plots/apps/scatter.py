@@ -40,6 +40,11 @@ tfidf = pd.read_csv(TFIDF_PATH, index_col=0)
 genres = [c for c in df.columns if 'genre_' in c]
 
 controls_card = utils.make_controls_card([
+    html.Div([
+        dcc.Link('Swarm plots', href='/apps/swarm'),
+        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
+        dcc.Link('Scatter plots', href='/apps/scatter'),
+    ]),
     utils.get_caption(NUM_BANDS, NUM_WORDS),
     utils.make_features_dropdown_div(
         label="X-axis:",

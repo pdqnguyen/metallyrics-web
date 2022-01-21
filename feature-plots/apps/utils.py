@@ -2,8 +2,7 @@ from io import BytesIO
 import base64
 import pandas as pd
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 import plotly.graph_objects as go
 from wordcloud import WordCloud
 
@@ -23,7 +22,7 @@ def get_header(num_bands):
 
 def get_caption(num_bands, num_words):
     return html.P([
-        f"This interactive swarm plot shows various lexical properties of the {num_bands} "
+        f"These interactive plots show various lexical properties of the {num_bands} "
         f"most-reviewed heavy metal artists who have at least {num_words:,.0f} words "
         "in their full collection of lyrics. Review statistics are based on reviews at ",
         html.A("metal-archives", href='https://www.metal-archives.com/', target='_blank'),

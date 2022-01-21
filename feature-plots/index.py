@@ -16,11 +16,6 @@ app.layout = html.Div([
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
         html.A('Genre predictor', href='https://metal-lyrics-genre-classifier.herokuapp.com/'),
     ], style={'margin-bottom': 10}),
-    html.Div([
-        dcc.Link('Swarm plots', href='/apps/swarm'),
-        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
-        dcc.Link('Scatter plots', href='/apps/scatter'),
-    ]),
     html.Div(id='page-content', children=[])
 ], style={'width': 1600, 'margin': 10})
 
