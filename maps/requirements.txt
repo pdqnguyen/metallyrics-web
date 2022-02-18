@@ -2,9 +2,5 @@ dash==2.0.0
 dash-bootstrap-components==1.0.2
 gunicorn
 h5py
-matplotlib
-nltk
 numpy
 pandas
-seaborn
-wordcloud
