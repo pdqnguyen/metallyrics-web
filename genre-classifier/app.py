@@ -68,6 +68,8 @@ app.layout = html.Div([
         html.A('Dataset dashboard', href='https://metal-lyrics-feature-plots.herokuapp.com/'),
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
         html.A('Network graph', href='https://metal-lyrics-network-graph.herokuapp.com/'),
+        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
+        html.A('Historical maps', href='https://metal-lyrics-maps.herokuapp.com/'),
     ]),
     dbc.Row([
         dbc.Col(

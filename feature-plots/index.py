@@ -14,6 +14,8 @@ app.layout = html.Div([
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
         html.A('Network graph', href='https://metal-lyrics-network-graph.herokuapp.com/'),
         html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
+        html.A('Historical maps', href='https://metal-lyrics-maps.herokuapp.com/'),
+        html.Label('|', style={'margin-left': 10, 'margin-right': 10}),
         html.A('Genre predictor', href='https://metal-lyrics-genre-classifier.herokuapp.com/'),
     ], style={'margin-bottom': 10}),
     html.Div(id='page-content', children=[])
