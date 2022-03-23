@@ -21,15 +21,112 @@ DATA_NAMES = {
     "review_avg": "review_avg.csv",
     "review_weighted": "review_weighted.csv",
 }
+REGIONS = {
+    'World': 'world',
+    'United States': 'usa',
+}
 FEATURES = {
-    "band_num": "Number of bands",
-    "album_num": "Number of albums",
-    "review_num": "Number of reviews",
+    "band_num": "Peak number of active bands",
+    "album_num": "Total number of albums",
+    "review_num": "Total number of reviews",
     "review_avg": "Average review score",
     "review_weighted": "Weighted-average review score",
 }
 DATE_RANGE = (1970, 2022)
 DATE_INTERVAL = 10
+
+
+STATE_NAMES = {
+    'AK': 'Alaska',
+    'AL': 'Alabama',
+    'AR': 'Arkansas',
+    'AZ': 'Arizona',
+    'CA': 'California',
+    'CO': 'Colorado',
+    'CT': 'Connecticut',
+    'DE': 'Delaware',
+    'FL': 'Florida',
+    'GA': 'Georgia',
+    'HI': 'Hawaii',
+    'IA': 'Iowa',
+    'ID': 'Idaho',
+    'IL': 'Illinois',
+    'IN': 'Indiana',
+    'KS': 'Kansas',
+    'KY': 'Kentucky',
+    'LA': 'Louisiana',
+    'MA': 'Massachusetts',
+    'MD': 'Maryland',
+    'ME': 'Maine',
+    'MI': 'Michigan',
+    'MN': 'Minnesota',
+    'MO': 'Missouri',
+    'MS': 'Mississippi',
+    'MT': 'Montana',
+    'NC': 'North Carolina',
+    'ND': 'North Dakota',
+    'NE': 'Nebraska',
+    'NH': 'New Hampshire',
+    'NJ': 'New Jersey',
+    'NM': 'New Mexico',
+    'NV': 'Nevada',
+    'NY': 'New York',
+    'OH': 'Ohio',
+    'OK': 'Oklahoma',
+    'OR': 'Oregon',
+    'PA': 'Pennsylvania',
+    'RI': 'Rhode Island',
+    'SC': 'South Carolina',
+    'SD': 'South Dakota',
+    'TN': 'Tennesee',
+    'TX': 'Texas',
+    'UT': 'Utah',
+    'VA': 'Virginia',
+    'VT': 'Vermont',
+    'WA': 'Washington',
+    'WI': 'Wisconsin',
+    'WV': 'West Virginia',
+    'WY': 'Wyoming',
+}
+
+
+def create_figure(data, feature, show_states=False):
+    if show_states:
+        labels = [STATE_NAMES[c] for c in data.columns]
+    else:
+        labels = list(data.columns)
+    if feature == 'band_num':
+        values = data.max(axis=0).values
+        z = np.log10(data.sum(axis=0))
+        colorbar = dict(
+            len=0.75,
+            title=FEATURES[feature],
+            tickvals=[0, 1, 2, 3, 4],
+            ticktext=['1', '10', '100', '1000', '10000']
+        )
+    elif feature[-4:] == '_num':
+        values = data.sum(axis=0).values
+        z = np.log10(data.sum(axis=0))
+        colorbar = dict(
+            len=0.75,
+            title=FEATURES[feature],
+            tickvals=[0, 1, 2, 3, 4],
+            ticktext=['1', '10', '100', '1000', '10000']
+        )
+    else:
+        values = data.mean(axis=0).values
+        z = data.mean(axis=0)
+        colorbar = dict(len=0.75, title=FEATURES[feature])
+    text = [f"<b>{label}:</b><br>{value:.0f}" for label, value in zip(labels, values)]
+    if show_states:
+        locationmode = 'USA-states'
+    else:
+        locationmode = 'country names'
+    kwargs = dict(z=z, colorbar=colorbar, text=text, hoverinfo='text', locations=data.columns,
+                  locationmode=locationmode, colorscale='viridis')
+    fig = go.Figure(go.Choropleth(**kwargs))
+    return fig
+
 
 app = dash.Dash(
     __name__,
@@ -84,7 +181,7 @@ app.layout = html.Div([
             )
         ], style={'width': 400, 'display': 'inline-block', 'verticalAlign': 'bottom'}),
     ], style={'margin-top': 40}),
-    dcc.Graph(id="choropleth"),
+    html.Div(dcc.Graph(id="choropleth"), style={'horizontalAlign': 'left'}),
 ], style={'margin': 10})
 
 
@@ -98,46 +195,10 @@ def display_choropleth(region, feature, date_range):
     basename = DATA_PREFIX[region] + DATA_NAMES[feature]
     df_path = DATA_PATH.joinpath(basename)
     df = pd.read_csv(df_path, index_col=0)
-    if region == 'World':
-        locationmode = 'country names'
-        scope = 'world'
-    elif region == 'United States':
-        locationmode = 'USA-states'
-        scope = 'usa'
-    kwargs = dict(
-        locations=df.columns,
-        locationmode=locationmode,
-        colorscale='viridis',
-    )
     start, end = date_range
     df = df.loc[start:end]
-    if feature[-4:] == '_num':
-        fig = go.Figure(
-            go.Choropleth(
-                z=np.log10(df.sum(axis=0)),
-                customdata=df.sum(axis=0),
-                colorbar=dict(
-                    len=0.75,
-                    title=FEATURES[feature],
-                    tickvals=[0, 1, 2, 3, 4],
-                    ticktext=['1', '10', '100', '1000', '10000']
-                ),
-                hovertemplate='%{location}: %{customdata:.0f}',
-                **kwargs,
-            )
-        )
-    else:
-        fig = go.Figure(
-            go.Choropleth(
-                z=df.mean(axis=0),
-                colorbar=dict(
-                    len=0.75,
-                    title=FEATURES[feature],
-                ),
-                hovertemplate='%{location}: %{z:.1f}',
-                **kwargs,
-            )
-        )
+    scope = REGIONS[region]
+    fig = create_figure(df, feature, show_states=(scope == 'usa'))
     fig.update_layout(
         height=800,
         plot_bgcolor="#111111",
