@@ -79,12 +79,12 @@
       <label id="label-edges">Connect nodes based on:</label>
       <select name="edges" id="select-edges" onchange="updateGraph()">
         <option value="genre">Genres in common</option>
-        <option value="lyrical">Lyrical similarity</option>
+        <option value="vocab">Lyrical similarity</option>
       </select>
       <label id="label-colors">Color nodes based on:</label>
       <select name="colors" id="select-colors" onchange="updateGraph()">
         <option value="genre">Genre clusters</option>
-        <option value="lyrical">Lyrical clusters</option>
+        <option value="vocab">Lyrical clusters</option>
       </select>
       <button onclick="toggleLabelVisible()">Show/hide names</button>
     </div>
@@ -149,11 +149,12 @@
   function updateGraph() {
     var selectEdges = document.getElementById('select-edges').value;
     var selectColors = document.getElementById('select-colors').value;
-    var fname = `${selectEdges}_proximity_${selectColors}_clustering.gexf`;
+    var fname = `${selectEdges}_edges_${selectColors}_colors.gexf`;
+    // var fname = `${selectEdges}_proximity_${selectColors}_clustering.gexf`;
     // if (selectEdges == 'genre') {
     //   sig.settings('minEdgeSize', 0.2);
     //   sig.settings('maxEdgeSize', 0.2);
-    // } else if (selectEdges == 'lyrical') {
+    // } else if (selectEdges == 'vocab') {
     //   sig.settings('minEdgeSize', 0.3);
     //   sig.settings('maxEdgeSize', 0.3);
     // }
