@@ -12,12 +12,12 @@ from . import utils
 from .config import *
 
 
-def plot_scatter(data, x, y, filter_columns, union=True):
+def plot_scatter(data, x, y, filter_columns, filter_pattern, union=True):
     # Initialize figure object
     fig = go.Figure()
-    if len(filter_columns) > 0:
+    if len(filter_columns) > 0 or filter_pattern is not None:
         # Apply filtering from user selections
-        bright, dim = utils.filter_data(data, filter_columns, union=union)
+        bright, dim = utils.filter_data(data, filter_columns, filter_pattern, union=union)
         utils.add_scatter(fig, data=bright, x=x, y=y, markersize=MARKER_SIZE)
         utils.add_scatter(fig, data=dim, x=x, y=y, markersize=MARKER_SIZE, opacity=0.15)
     else:
@@ -63,6 +63,7 @@ controls_card = utils.make_controls_card([
         genres={g: utils.get_genre_label(df, g) for g in genres},
     ),
     utils.make_radio_div("scatter-radio-genre"),
+    utils.make_band_input_div(id="scatter-input-band"),
 ])
 
 wordcloud_card = utils.make_wordcloud_card("scatter")
@@ -95,11 +96,12 @@ layout = html.Div([
     [Input("scatter-dropdown-x", "value"),
      Input("scatter-dropdown-y", "value"),
      Input("scatter-dropdown-genre", "value"),
-     Input("scatter-radio-genre", "value")])
-def display_plot(x, y, z, selection):
+     Input("scatter-radio-genre", "value"),
+     Input("scatter-input-band", "value"),])
+def display_plot(x, y, z, selection, search):
     if z is None:
         z = []
-    fig = plot_scatter(df, x, y, z, union=(selection == 'union'))
+    fig = plot_scatter(df, x, y, z, search, union=(selection == 'union'))
     return fig
 
 @app.callback(
