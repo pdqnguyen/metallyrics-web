@@ -9,7 +9,7 @@ by [pdqnguyen/metallyrics](https://github.com/pdqnguyen/metallyrics):
 > 
 > See how genre associations and lyrical similarity connect the disparate world of heavy metal artists.
 
-> [Map of metal bands, albums, and album review statistics](https://metal-lyrics-network-graph.herokuapp.com/)
+> [Map of metal bands, albums, and album review statistics](https://metal-lyrics-maps.herokuapp.com/)
 > 
 > Visualize the geographic distribution of heavy metal bands and albums on Metal-Archives.
 
