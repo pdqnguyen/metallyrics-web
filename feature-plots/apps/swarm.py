@@ -39,7 +39,7 @@ def get_swarm_data(series, figsize, markersize):
     return swarm_data, swarm_props
 
 
-def plot_scatter(data, filter_columns, sns_props, union=True):
+def plot_scatter(data, filter_columns, filter_pattern, sns_props, union=True):
     """Initialize `plotly.graph_objects.Figure` object which will contain swarm plots.
     """
     xlim = sns_props['xlim']
@@ -48,9 +48,9 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
     size = sns_props['markersize']
     # Initialize figure object
     fig = go.Figure()
-    if len(filter_columns) > 0:
+    if len(filter_columns) > 0 or filter_pattern is not None:
         # Apply filtering from user selections
-        bright, dim = utils.filter_data(data, filter_columns, union=union)
+        bright, dim = utils.filter_data(data, filter_columns, filter_pattern, union=union)
         utils.add_scatter(fig, data=bright, swarm=True, markersize=size)
         utils.add_scatter(fig, data=dim, swarm=True, markersize=size, opacity=0.15)
     else:
@@ -88,6 +88,7 @@ controls_card = utils.make_controls_card([
         genres={g: utils.get_genre_label(df, g) for g in genres},
     ),
     utils.make_radio_div("swarm-radio-genre"),
+    utils.make_band_input_div(id="swarm-input-band"),
 ])
 
 wordcloud_card = utils.make_wordcloud_card("swarm")
@@ -115,12 +116,21 @@ layout = html.Div([
 ])
 
 
+def match_bands(pattern):
+    band_names = df.name
+    if pattern is not None:
+        return band_names[band_names.str.match(pattern)].values
+    else:
+        return band_names
+
+
 @app.callback(
     Output("swarm-graph", "figure"),
     [Input("swarm-dropdown-feature", "value"),
      Input("swarm-dropdown-genre", "value"),
-     Input("swarm-radio-genre", "value")])
-def display_plot(feature, cols, selection):
+     Input("swarm-radio-genre", "value"),
+     Input("swarm-input-band", "value"),])
+def display_plot(feature, cols, selection, search):
     df_sort = df.sort_values(feature)
     swarm, swarm_props = get_swarm_data(
         df_sort[feature],
@@ -130,7 +140,7 @@ def display_plot(feature, cols, selection):
     swarm_df = pd.concat((df_sort, swarm), axis=1)
     if cols is None:
         cols = []
-    fig = plot_scatter(swarm_df, cols, swarm_props, union=(selection == 'union'))
+    fig = plot_scatter(swarm_df, cols, search, swarm_props, union=(selection == 'union'))
     return fig
 
 @app.callback(

@@ -102,11 +102,25 @@ def make_radio_div(id):
     return div
 
 
-def filter_data(data, filter_columns, union=True):
-    if union:
-        filt = (data[filter_columns] > 0).any(axis=1)
-    else:
-        filt = (data[filter_columns] > 0).all(axis=1)
+def make_band_input_div(id):
+    dropdown = dcc.Input(
+        id=id,
+        style={'background-color': '#111111', 'verticalAlign': 'middle', 'color': 'white'},
+    )
+    div = make_dropdown_div("Search by band name:", dropdown)
+    return div
+
+
+def filter_data(data, filter_columns, filter_pattern, union=True):
+    filt = pd.Series(True, index=data.index)
+    if len(filter_columns) > 0:
+        if union:
+            filt = (data[filter_columns] > 0).any(axis=1)
+        else:
+            filt = (data[filter_columns] > 0).all(axis=1)
+    names = data.name
+    if filter_pattern is not None:
+        filt = filt & names.str.lower().str.contains(filter_pattern.lower())
     bright = data[filt]
     dim = data[~filt]
     return bright, dim
