@@ -66,8 +66,8 @@ def plot_scatter(data, filter_columns, sns_props, union=True):
     return fig
 
 
-df = pd.read_csv(DATA_PATH)
-tfidf = pd.read_csv(TFIDF_PATH, index_col=0)
+df = pd.read_csv(LYRICAL_COMPLEXITY_PATH)
+tfidf = pd.read_csv(WORDCLOUD_PATH, index_col=0)
 genres = [c for c in df.columns if 'genre_' in c]
 
 controls_card = utils.make_controls_card([

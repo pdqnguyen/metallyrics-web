@@ -43,5 +43,5 @@ AXES_KWARGS = {
 
 # Dataset location
 PATH = pathlib.Path(__file__).parent
-DATA_PATH = PATH.joinpath('../data').resolve().joinpath('data.csv')
-TFIDF_PATH = PATH.joinpath('../data').resolve().joinpath('tfidf-bands.csv')
+LYRICAL_COMPLEXITY_PATH = PATH.joinpath('../data').resolve().joinpath('bands-lyrical-complexity.csv')
+WORDCLOUD_PATH = PATH.joinpath('../data').resolve().joinpath('bands-wordclouds.csv')
