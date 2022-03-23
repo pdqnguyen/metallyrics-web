@@ -10,32 +10,70 @@ import dash_bootstrap_components as dbc
 
 
 DATA_PATH = pathlib.Path(__file__).parent.joinpath('./data').resolve()
-DATA_PREFIX = {
-    "World": "countries_",
-    "United States": "states_",
-}
-DATA_NAMES = {
-    "band_num": "band_num.csv",
-    "album_num": "album_num.csv",
-    "review_num": "review_num.csv",
-    "review_avg": "review_avg.csv",
-    "review_weighted": "review_weighted.csv",
-}
 REGIONS = {
-    'World': 'world',
-    'United States': 'usa',
+    "world": {"label": "World", "path": "countries_"},
+    "usa": {"label": "United States", "path": "states_"},
 }
 FEATURES = {
-    "band_num": "Peak number of active bands",
-    "album_num": "Total number of albums",
-    "review_num": "Total number of reviews",
-    "review_avg": "Average review score",
-    "review_weighted": "Weighted-average review score",
+    "band_num": {
+        "label": "Peak number of active bands",
+        "path": "band_num.csv",
+        "method": "max",
+        "format": ",.0f",
+        "log": True,
+    },
+    "band_dens": {
+        "label": "Peak number of active bands per million people",
+        "path": "band_dens.csv",
+        "method": "max",
+        "format": ",.2f",
+        "log": True,
+    },
+    "album_num": {
+        "label": "Total number of albums",
+        "path": "album_num.csv",
+        "method": "sum",
+        "format": ",.0f",
+        "log": True,
+    },
+    "album_dens": {
+        "label": "Total number of albums per million people",
+        "path": "album_dens.csv",
+        "method": "sum",
+        "format": ",.2f",
+        "log": True,
+    },
+    "review_num": {
+        "label": "Total number of reviews",
+        "path": "review_num.csv",
+        "method": "sum",
+        "format": ",.0f",
+        "log": True,
+    },
+    "review_dens": {
+        "label": "Total number of reviews per million people",
+        "path": "review_dens.csv",
+        "method": "sum",
+        "format": ",.2f",
+        "log": True,
+    },
+    "review_avg": {
+        "label": "Average review score",
+        "path": "review_avg.csv",
+        "method": "mean",
+        "format": ",.2f",
+        "log": False,
+    },
+    "review_weighted": {
+        "label": "Weighted-average review score",
+        "path": "review_weighted.csv",
+        "method": "mean",
+        "format": ",.2f",
+        "log": False,
+    },
 }
 DATE_RANGE = (1970, 2022)
 DATE_INTERVAL = 10
-
-
 STATE_NAMES = {
     'AK': 'Alaska',
     'AL': 'Alabama',
@@ -90,34 +128,29 @@ STATE_NAMES = {
 }
 
 
-def create_figure(data, feature, show_states=False):
+def create_figure(data, feature_dict, show_states=False):
+    colorbar_title = feature_dict['label']
+    method = feature_dict['method']
+    str_format = feature_dict['format']
+    log_scale = feature_dict['log']
     if show_states:
-        labels = [STATE_NAMES[c] for c in data.columns]
+        hover_labels = [STATE_NAMES[c] for c in data.columns]
     else:
-        labels = list(data.columns)
-    if feature == 'band_num':
-        values = data.max(axis=0).values
-        z = np.log10(data.sum(axis=0))
+        hover_labels = list(data.columns)
+    values = eval(f"data.{method}(axis=0).values")
+    if log_scale:
+        z = np.log10(values)
         colorbar = dict(
             len=0.75,
-            title=FEATURES[feature],
-            tickvals=[0, 1, 2, 3, 4],
-            ticktext=['1', '10', '100', '1000', '10000']
-        )
-    elif feature[-4:] == '_num':
-        values = data.sum(axis=0).values
-        z = np.log10(data.sum(axis=0))
-        colorbar = dict(
-            len=0.75,
-            title=FEATURES[feature],
+            title=colorbar_title,
             tickvals=[0, 1, 2, 3, 4],
             ticktext=['1', '10', '100', '1000', '10000']
         )
     else:
-        values = data.mean(axis=0).values
-        z = data.mean(axis=0)
-        colorbar = dict(len=0.75, title=FEATURES[feature])
-    text = [f"<b>{label}:</b><br>{value:.0f}" for label, value in zip(labels, values)]
+        z = values
+        colorbar = dict(len=0.75, title=colorbar_title)
+    str_template = "<b>{label}:</b><br>{value:" + str_format + "}"
+    text = [str_template.format(label=label, value=value) for label, value in zip(hover_labels, values)]
     if show_states:
         locationmode = 'USA-states'
     else:
@@ -153,8 +186,8 @@ app.layout = html.Div([
         html.P("Region:", style={'display': 'inline-block', 'margin-right': 20}),
         dbc.RadioItems(
             id='radio',
-            options=[{'value': x, 'label': x} for x in DATA_PREFIX.keys()],
-            value=list(DATA_PREFIX.keys())[0],
+            options=[{'value': k, 'label': v['label']} for k, v in REGIONS.items()],
+            value=list(REGIONS.keys())[0],
             inline=True,
             style={'display': 'inline-block', 'margin-right': 50},
         ),
@@ -162,10 +195,10 @@ app.layout = html.Div([
         html.Div([
             dcc.Dropdown(
                 id='dropdown',
-                options=[{'value': k, 'label': v} for k, v in FEATURES.items()],
+                options=[{'value': k, 'label': v['label']} for k, v in FEATURES.items()],
                 value=list(FEATURES.keys())[0],
                 clearable=False,
-                style={'width': 300, 'background-color': '#111111', 'verticalAlign': 'middle'},
+                style={'width': 500, 'background-color': '#111111', 'verticalAlign': 'middle'},
             ),
         ], style={'display': 'inline-block', 'verticalAlign': 'middle', 'margin-right': 50}, className='dropdown'),
         html.P("Date range:", style={'display': 'inline-block', 'margin-right': 20}),
@@ -192,13 +225,16 @@ app.layout = html.Div([
      Input("slider", "value")]
 )
 def display_choropleth(region, feature, date_range):
-    basename = DATA_PREFIX[region] + DATA_NAMES[feature]
+    region_dict = REGIONS[region]
+    feature_dict = FEATURES[feature]
+    basename = region_dict['path'] + feature_dict['path']
     df_path = DATA_PATH.joinpath(basename)
     df = pd.read_csv(df_path, index_col=0)
     start, end = date_range
     df = df.loc[start:end]
-    scope = REGIONS[region]
-    fig = create_figure(df, feature, show_states=(scope == 'usa'))
+    if region == 'usa':
+        df = df.loc[:, df.columns.isin(STATE_NAMES.keys())]
+    fig = create_figure(df, feature_dict, show_states=(region == 'usa'))
     fig.update_layout(
         height=800,
         plot_bgcolor="#111111",
@@ -207,7 +243,7 @@ def display_choropleth(region, feature, date_range):
         margin=dict(l=0, r=0, t=0, b=0),
     )
     fig.update_geos(
-        scope=scope,
+        scope=region,
         showland=True, landcolor="#111111",
         showocean=True, oceancolor="#111111",
         showlakes=True, lakecolor="#111111",
